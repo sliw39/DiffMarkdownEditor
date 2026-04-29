@@ -44,12 +44,12 @@ function handleDiscardDiff(diff: any) {
     <div class="assistant-section">
       <h2>Fake Assistant (External Edits)</h2>
       <div class="form-group">
-        <label for="original-text">Original Text</label>
-        <input id="original-text" v-model="originalText" type="text" />
+        <label>Original Text</label>
+        <input v-model="originalText" type="text" />
       </div>
       <div class="form-group">
-        <label for="new-text">New Text</label>
-        <input id="new-text" v-model="newText" type="text" />
+        <label>New Text</label>
+        <input v-model="newText" type="text" />
       </div>
       <button @click="simulateExternalEdit">Simulate AI Replace</button>
 

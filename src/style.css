@@ -158,18 +158,14 @@ code {
 }
 
 #app {
-  width: 210mm;
-  min-height: 297mm;
-  max-width: 100%;
+  max-width: 1200px;
   margin: 2rem auto;
-  text-align: center;
-  background-color: white;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  border: 1px solid #ddd;
+  text-align: left;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 2rem;
   box-sizing: border-box;
-  padding: 2cm;
 }
 
 @media print {
@@ -178,8 +174,6 @@ code {
   }
   #app {
     margin: 0;
-    box-shadow: none;
-    border: none;
   }
 }
 

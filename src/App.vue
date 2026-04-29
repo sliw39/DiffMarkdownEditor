@@ -75,8 +75,6 @@ function handleDiscardDiff(diff: any) {
 
 <template>
   <div class="app-container">
-    <h1>Markdown Diff Editor Test</h1>
-
     <div class="editor-section">
       <MilkdownProvider>
         <MilkdownEditor :editorState="editorState" @update="onEditorUpdate" />
@@ -112,19 +110,29 @@ function handleDiscardDiff(diff: any) {
 <style scoped>
 .app-container {
   display: flex;
-  flex-direction: column;
-  align-items: center;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 2rem;
+  width: 100%;
   font-family: sans-serif;
   color: #333;
-  padding: 2rem;
 }
 .editor-section {
-  margin-bottom: 2rem;
-  width: 100%;
-  display: flex;
-  justify-content: center;
+  width: 210mm;
+  min-height: 297mm;
+  padding: 2cm;
+  background-color: white;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: 1px solid #ddd;
+  box-sizing: border-box;
+  display: block;
 }
 .assistant-section {
+  flex: 1;
+  max-width: 350px;
+  position: sticky;
+  top: 2rem;
   padding: 1rem;
   background-color: #f9f9f9;
   border-radius: 4px;

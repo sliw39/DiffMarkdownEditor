@@ -120,12 +120,11 @@ watch(() => props.editorState.activeDiffs, (newDiffs) => {
 
 <style scoped>
 .milkdown-container {
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  padding: 1rem;
-  background-color: #fff;
-  min-height: 200px;
+  border: none;
+  padding: 0;
+  background-color: transparent;
   text-align: left;
+  height: 100%;
 }
 :deep(.diff-added) {
   background-color: #e6ffed;

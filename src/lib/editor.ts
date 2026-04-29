@@ -1,4 +1,4 @@
-import DiffMatchPatch from 'diff-match-patch'
+import DiffMatchPatch, { type Diff as DMPDiff } from 'diff-match-patch'
 
 const dmp = new DiffMatchPatch()
 
@@ -60,7 +60,7 @@ export function fuzzyMatch(
  *
  * Returns standard diff-match-patch output.
  */
-export function fullDiff(textA: string, textB: string): diff_match_patch.Diff[] {
+export function fullDiff(textA: string, textB: string): DMPDiff[] {
   const diffs = dmp.diff_main(textA, textB)
   dmp.diff_cleanupSemantic(diffs)
   return diffs
@@ -74,7 +74,7 @@ export function fullDiff(textA: string, textB: string): diff_match_patch.Diff[] 
  */
 export function acceptDiff(state: EditorState, diff: Diff) {
   const patches = dmp.patch_make(diff.originalText, diff.newText)
-  const [newPrev, results] = dmp.patch_apply(patches, state.prevDraft)
+  const [newPrev] = dmp.patch_apply(patches, state.prevDraft)
 
   // Even if partially applied or failed, we consider it accepted as the user requested
   state.prevDraft = newPrev
@@ -89,7 +89,7 @@ export function acceptDiff(state: EditorState, diff: Diff) {
  */
 export function discardDiff(state: EditorState, diff: Diff) {
   const inversePatches = dmp.patch_make(diff.newText, diff.originalText)
-  const [newCurrent, results] = dmp.patch_apply(inversePatches, state.currentDraft)
+  const [newCurrent] = dmp.patch_apply(inversePatches, state.currentDraft)
 
   // Even if partially applied, we update state to discard
   state.currentDraft = newCurrent
@@ -126,13 +126,14 @@ export function externalUpdateFragment(state: EditorState, fragment: FuzzyDiff) 
 export function externalUpdateAll(state: EditorState, text: string) {
   const patches = dmp.patch_make(state.currentDraft, text)
   for (const patch of patches) {
-    const originalText = patch.diffs
-      .filter((d) => d[0] !== 1)
-      .map((d) => d[1])
+    const p = patch as unknown as { diffs: DMPDiff[] };
+    const originalText = p.diffs
+      .filter((d: DMPDiff) => d[0] !== 1)
+      .map((d: DMPDiff) => d[1])
       .join('')
-    const newText = patch.diffs
-      .filter((d) => d[0] !== -1)
-      .map((d) => d[1])
+    const newText = p.diffs
+      .filter((d: DMPDiff) => d[0] !== -1)
+      .map((d: DMPDiff) => d[1])
       .join('')
 
     if (originalText !== newText) {

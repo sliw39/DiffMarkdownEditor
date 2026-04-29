@@ -14,6 +14,7 @@
   "dependencies": {
     "@milkdown/core": "^7.20.0",
     "@milkdown/preset-commonmark": "^7.20.0",
+    "@milkdown/preset-gfm": "^7.20.0",
     "@milkdown/theme-nord": "^7.20.0",
     "@milkdown/vue": "^7.20.0",
     "diff-match-patch": "^1.0.5",

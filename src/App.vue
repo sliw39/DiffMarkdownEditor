@@ -4,7 +4,49 @@ import { MilkdownProvider } from '@milkdown/vue'
 import MilkdownEditor from './components/MilkdownEditor.vue'
 import { createEditorState, externalUpdateFragment, acceptDiff, discardDiff } from './lib/editor'
 
-const initialDraft = 'This is a sample Markdown text.\n\nIt is used to test the editor.\n'
+const initialDraft = `# Welcome to the A4 Markdown Editor!
+
+This is a test document with **rich** formatting. Let's try some _italics_ and ~~strikethrough~~.
+
+## Lists
+
+### Unordered List
+* Item 1
+* Item 2
+  * Nested item A
+  * Nested item B
+* Item 3
+
+### Ordered List
+1. First step
+2. Second step
+3. Third step
+
+## Blockquote
+
+> This is a blockquote. It's useful for calling out specific text.
+> Multiple lines are supported.
+
+## Code
+
+Inline code looks like \`this\`.
+
+Here is a block of code:
+
+\`\`\`javascript
+function greet(name) {
+  console.log("Hello, " + name + "!");
+}
+greet("World");
+\`\`\`
+
+## Tables
+
+| Header 1 | Header 2 | Header 3 |
+| :--- | :---: | ---: |
+| Left aligned | Center aligned | Right aligned |
+| Row 2, Col 1 | Row 2, Col 2 | Row 2, Col 3 |
+`
 const editorState = reactive(createEditorState(initialDraft))
 
 const originalText = ref('test the editor')
@@ -69,13 +111,18 @@ function handleDiscardDiff(diff: any) {
 
 <style scoped>
 .app-container {
-  max-width: 800px;
-  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   font-family: sans-serif;
   color: #333;
+  padding: 2rem;
 }
 .editor-section {
   margin-bottom: 2rem;
+  width: 100%;
+  display: flex;
+  justify-content: center;
 }
 .assistant-section {
   padding: 1rem;

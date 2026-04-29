@@ -3,6 +3,7 @@ import { Milkdown, useEditor } from '@milkdown/vue'
 import { Editor, rootCtx, editorViewCtx, defaultValueCtx } from '@milkdown/core'
 import { replaceAll } from '@milkdown/utils'
 import { commonmark } from '@milkdown/preset-commonmark'
+import { gfm } from '@milkdown/preset-gfm'
 import { nord } from '@milkdown/theme-nord'
 import { history } from '@milkdown/plugin-history'
 import { listener, listenerCtx } from '@milkdown/plugin-listener'
@@ -59,6 +60,7 @@ const { get } = useEditor((root) => {
     })
     .config(nord)
     .use(commonmark)
+    .use(gfm)
     .use(history)
     .use(listener)
     .use(diffPlugin)

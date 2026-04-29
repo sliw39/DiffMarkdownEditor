@@ -52,6 +52,7 @@
 
 body {
   margin: 0;
+  background-color: #f0f0f0;
 }
 
 h1,
@@ -157,15 +158,29 @@ code {
 }
 
 #app {
-  width: 1126px;
+  width: 210mm;
+  min-height: 297mm;
   max-width: 100%;
-  margin: 0 auto;
+  margin: 2rem auto;
   text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
+  background-color: white;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: 1px solid #ddd;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+  padding: 2cm;
+}
+
+@media print {
+  body {
+    background-color: white;
+  }
+  #app {
+    margin: 0;
+    box-shadow: none;
+    border: none;
+  }
 }
 
 #center {

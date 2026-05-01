@@ -10,10 +10,15 @@ export interface FuzzyDiff {
 export interface Diff extends FuzzyDiff {
   id: string
   /**
-   * Character offset in `currentDraft` where this change’s `newText` begins
-   * (after the fragment was applied). Set for exact multi-replace and empty `newText`.
+   * Which occurrence of `newText` in the document’s plain text this diff decorates
+   * (0-based), for exact multi-replace when the same `newText` appears multiple times.
    */
-  appliedNewTextStart?: number
+  occurrenceIndex?: number
+  /**
+   * When `newText` is empty: index in the post-update markdown where the deletion
+   * sits (start of the text that followed the removed span). Used to anchor the widget in PM.
+   */
+  insertMarkdownOffset?: number
 }
 
 export interface EditorState {
@@ -114,9 +119,9 @@ export function externalUpdateFragment(state: EditorState, fragment: FuzzyDiff) 
   // Try exact replacement first to handle multiple occurrences and long paragraphs
   // bypassing diff-match-patch's 32 character limit for Match_main
   if (fragment.originalText.length > 0 && state.currentDraft.includes(fragment.originalText)) {
-    const appliedStarts: number[] = []
     let built = ''
     let pos = 0
+    let occurrence = 0
     while (true) {
       const idx = state.currentDraft.indexOf(fragment.originalText, pos)
       if (idx === -1) {
@@ -124,19 +129,18 @@ export function externalUpdateFragment(state: EditorState, fragment: FuzzyDiff) 
         break
       }
       built += state.currentDraft.slice(pos, idx) + fragment.newText
-      appliedStarts.push(built.length - fragment.newText.length)
-      pos = idx + fragment.originalText.length
-    }
-    targetDraft = built
-
-    for (const start of appliedStarts) {
+      const insertOffset = built.length - fragment.newText.length
       state.activeDiffs.push({
         id: Math.random().toString(36).substring(2, 9),
         originalText: fragment.originalText,
         newText: fragment.newText,
-        appliedNewTextStart: start,
+        occurrenceIndex: occurrence,
+        ...(fragment.newText === '' ? { insertMarkdownOffset: insertOffset } : {}),
       })
+      occurrence++
+      pos = idx + fragment.originalText.length
     }
+    targetDraft = built
   } else {
     // Fallback to fuzzy match logic using patch_apply
     const patches = dmp.patch_make(fragment.originalText, fragment.newText)

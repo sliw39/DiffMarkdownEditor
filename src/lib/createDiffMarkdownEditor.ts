@@ -39,13 +39,11 @@ export function createDiffMarkdownEditor(
         h('div', { class: 'dm-editor-frame', style: frameStyle.value }, [
           h(MilkdownProvider, null, {
             default: () =>
-              h('div', { class: 'dm-editor-document' }, [
-                h(MilkdownEditor, {
-                  onUpdate: (content: string) => {
-                    controller.state.currentDraft = content
-                  },
-                }),
-              ]),
+              h(MilkdownEditor, {
+                onUpdate: (content: string) => {
+                  controller.state.currentDraft = content
+                },
+              }),
           }),
         ])
     },

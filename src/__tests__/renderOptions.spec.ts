@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest'
-import { defaultRenderOptions, mergeRenderOptions, renderOptionsToCssVars } from '../lib/renderOptions'
+import {
+  defaultRenderOptions,
+  mergeRenderOptions,
+  renderOptionsToCssVars,
+  documentFormatToCssVars,
+  defaultDocumentFormat,
+} from '../lib/renderOptions'
 
 describe('renderOptions', () => {
   it('defaultRenderOptions matches baseline theme', () => {
@@ -8,6 +14,8 @@ describe('renderOptions', () => {
     expect(d.documentBgColor).toBe('#ffffff')
     expect(d.frameTextFont.color).toBe('#333333')
     expect(d.documentTextFont.baseSize).toBe('16px')
+    expect(d.documentFormat.pageSize).toBe('A4')
+    expect(d.documentFormat.margins.top).toBe('2cm')
   })
 
   it('mergeRenderOptions fills partial top-level fields', () => {
@@ -32,5 +40,33 @@ describe('renderOptions', () => {
     expect(vars['--dm-frame-bg']).toBe('#f0f0f0')
     expect(vars['--dm-doc-bg']).toBe('#ffffff')
     expect(vars['--dm-doc-font-size']).toBe('16px')
+    expect(vars['--dm-doc-width']).toBe('210mm')
+    expect(vars['--dm-doc-min-height']).toBe('297mm')
+    expect(vars['--dm-doc-margin-top']).toBe('2cm')
+  })
+
+  it('mergeRenderOptions merges documentFormat presets and margins', () => {
+    const m = mergeRenderOptions({
+      documentFormat: {
+        pageSize: 'A5',
+        margins: { top: '15mm' },
+      },
+    })
+    expect(m.documentFormat.pageSize).toBe('A5')
+    expect(m.documentFormat.margins.top).toBe('15mm')
+    expect(m.documentFormat.margins.right).toBe('2cm')
+    const vars = documentFormatToCssVars(m.documentFormat)
+    expect(vars['--dm-doc-width']).toBe('148mm')
+    expect(vars['--dm-doc-min-height']).toBe('210mm')
+  })
+
+  it('documentFormatToCssVars accepts custom width and height', () => {
+    const fmt = {
+      ...defaultDocumentFormat(),
+      pageSize: { width: '180mm', height: '250mm' } as const,
+    }
+    const vars = documentFormatToCssVars(fmt)
+    expect(vars['--dm-doc-width']).toBe('180mm')
+    expect(vars['--dm-doc-min-height']).toBe('250mm')
   })
 })

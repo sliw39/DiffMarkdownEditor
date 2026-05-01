@@ -9,9 +9,10 @@
 }
 
 .dm-editor-document {
-  width: 210mm;
-  min-height: 297mm;
-  padding: 2cm;
+  width: var(--dm-doc-width, 210mm);
+  min-height: var(--dm-doc-min-height, 297mm);
+  padding: var(--dm-doc-margin-top, 2cm) var(--dm-doc-margin-right, 2cm)
+    var(--dm-doc-margin-bottom, 2cm) var(--dm-doc-margin-left, 2cm);
   background-color: var(--dm-doc-bg);
   color: var(--dm-doc-color);
   font-family: var(--dm-doc-font-family);
@@ -82,11 +83,12 @@
   position: absolute;
   left: 50%;
   bottom: 100%;
-  transform: translateX(-50%) translateY(-6px);
+  /* Slight overlap onto the diff removes the dead hover gap above the text */
+  transform: translateX(-50%);
+  margin-bottom: -6px;
   min-width: 12rem;
   max-width: min(22rem, 90vw);
   padding: 0.5rem 0.65rem;
-  margin-bottom: 4px;
   z-index: 50;
   box-sizing: border-box;
   font-family: system-ui, sans-serif;
@@ -98,8 +100,8 @@
   border-radius: 6px;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
   transition:
-    opacity 0.12s ease,
-    visibility 0.12s ease;
+    opacity 0.18s ease,
+    visibility 0.18s ease;
 }
 
 .dm-milkdown-host .diff-change-wrap:hover .diff-tooltip,

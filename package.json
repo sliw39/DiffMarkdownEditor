@@ -3,13 +3,31 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/diff-markdown-editor.js",
+      "default": "./dist/diff-markdown-editor.js"
+    }
+  },
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc -b && vite build",
+    "build:lib": "vue-tsc -b && vite build --config vite.lib.config.ts",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
     "coverage": "vitest run --coverage"
+  },
+  "peerDependencies": {
+    "@milkdown/core": "^7.20.0",
+    "@milkdown/plugin-history": "^7.20.0",
+    "@milkdown/plugin-listener": "^7.20.0",
+    "@milkdown/preset-commonmark": "^7.20.0",
+    "@milkdown/preset-gfm": "^7.20.0",
+    "@milkdown/theme-nord": "^7.20.0",
+    "@milkdown/utils": "^7.20.0",
+    "@milkdown/vue": "^7.20.0",
+    "vue": "^3.5.32"
   },
   "dependencies": {
     "@milkdown/core": "^7.20.0",

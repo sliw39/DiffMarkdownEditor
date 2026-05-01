@@ -5,7 +5,7 @@ test.describe('Diff functionality extended', () => {
     await page.goto('/');
 
     // Wait for the editor to load the initial content completely
-    const editor = page.locator('.milkdown-container');
+    const editor = page.locator('.dm-milkdown-host');
     await expect(editor).toContainText('Item 3');
 
     const originalTextInput = page.locator('div.form-group').filter({ hasText: 'Original Text' }).locator('input');
@@ -35,7 +35,7 @@ test.describe('Diff functionality extended', () => {
   test('should delete a full paragraph', async ({ page }) => {
     await page.goto('/');
 
-    const editor = page.locator('.milkdown-container');
+    const editor = page.locator('.dm-milkdown-host');
     await expect(editor).toContainText('This is a blockquote');
 
     const originalTextInput = page.locator('div.form-group').filter({ hasText: 'Original Text' }).locator('input');

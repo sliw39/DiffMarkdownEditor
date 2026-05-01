@@ -13,6 +13,12 @@ import { Plugin, PluginKey } from 'prosemirror-state'
 import { $prose } from '@milkdown/utils'
 import type { Diff, EditorState } from '../lib/editor'
 import { createDiffDecorations } from '../lib/diffChangeWidget'
+import { buildPlainTextIndex, nthSubstringRangeInPlain } from '../lib/prosePlainText'
+
+function firstSignificantWordInTail(markdownTail: string): string | null {
+  const m = markdownTail.match(/[A-Za-zÀ-ÿ]{4,}/)
+  return m ? m[0] : null
+}
 import { diffMarkdownControllerKey } from '../lib/injectionKeys'
 import { inject, nextTick, ref, watch } from 'vue'
 
@@ -35,42 +41,22 @@ const editorState = controller ? controller.state : props.editorState!
 
 const diffPluginKey = new PluginKey('diff-plugin')
 
-/** Map a character offset in serialized markdown to a ProseMirror document position. */
-function posFromMarkdownOffset(doc: PMNode, offset: number): number {
-  let acc = 0
-  let found = -1
-  doc.descendants((node, pos) => {
-    if (!node.isText || !node.text) return
-    const len = node.text.length
-    if (acc + len > offset) {
-      found = pos + (offset - acc)
-      return false
-    }
-    acc += len
-  })
-  return found
-}
+function decorationRangeForDiff(doc: PMNode, diff: Diff, markdown: string): { from: number; to: number } | null {
+  const { plain, startPos } = buildPlainTextIndex(doc)
 
-function decorationRangeForDiff(doc: PMNode, diff: Diff): { from: number; to: number } | null {
-  if (diff.appliedNewTextStart !== undefined) {
-    const from = posFromMarkdownOffset(doc, diff.appliedNewTextStart)
-    if (from === -1) return null
-    const to = posFromMarkdownOffset(doc, diff.appliedNewTextStart + diff.newText.length)
-    if (to === -1) return null
-    return { from, to }
+  if (diff.newText.length === 0) {
+    const off = diff.insertMarkdownOffset
+    if (off === undefined) return null
+    const word = firstSignificantWordInTail(markdown.slice(off))
+    if (!word) return null
+    const occ = diff.occurrenceIndex ?? 0
+    const r = nthSubstringRangeInPlain(plain, startPos, word, occ)
+    if (!r) return null
+    return { from: r.from, to: r.from }
   }
 
-  let result: { from: number; to: number } | null = null
-  doc.descendants((node, p) => {
-    if (node.isText && node.text) {
-      const idx = node.text.indexOf(diff.newText)
-      if (idx !== -1) {
-        result = { from: p + idx, to: p + idx + diff.newText.length }
-        return false
-      }
-    }
-  })
-  return result
+  const occ = diff.occurrenceIndex ?? 0
+  return nthSubstringRangeInPlain(plain, startPos, diff.newText, occ)
 }
 
 const diffPlugin = $prose(() => {
@@ -145,7 +131,7 @@ watch(
         const decorations: Decoration[] = []
 
         newDiffs.forEach((diff) => {
-          const range = decorationRangeForDiff(doc, diff)
+          const range = decorationRangeForDiff(doc, diff, editorState.currentDraft)
           if (range) {
             decorations.push(...createDiffDecorations(range.from, range.to, diff, controller))
           }

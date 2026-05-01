@@ -13,18 +13,63 @@ import { Plugin, PluginKey } from 'prosemirror-state'
 import { $prose } from '@milkdown/utils'
 import type { Diff, EditorState } from '../lib/editor'
 import { createDiffDecorations } from '../lib/diffChangeWidget'
-import { nthOccurrenceInSingleTextNode } from '../lib/prosePlainText'
-import { diffMarkdownControllerKey } from '../lib/injectionKeys'
+import {
+  buildPlainTextIndex,
+  nthOccurrenceInSingleTextNode,
+  nthSubstringRangeInPlain,
+} from '../lib/prosePlainText'
+import { diffMarkdownControllerKey, diffMarkdownRenderOptionsKey } from '../lib/injectionKeys'
+import {
+  defaultDocumentFormat,
+  documentFormatToCssVars,
+  mergePartialDocumentFormat,
+  type PartialDocumentFormatOptions,
+} from '../lib/renderOptions'
+import { computed, inject, nextTick, ref, watch } from 'vue'
 
-function firstSignificantWordInTail(markdownTail: string): string | null {
-  const m = markdownTail.match(/[A-Za-zÀ-ÿ]{4,}/)
-  return m ? m[0] : null
+/** Words that are poor anchors for deletion widgets (common in code fences). */
+const MARKDOWN_TAIL_SKIP_WORDS = new Set([
+  'async',
+  'await',
+  'console',
+  'const',
+  'export',
+  'function',
+  'import',
+  'return',
+  'static',
+  'typeof',
+  'var',
+  'let',
+])
+
+/**
+ * First “significant” word in markdown tail after an insertion point, skipping
+ * keywords that appear in almost every JS snippet so we do not always anchor on `console`.
+ */
+function firstAnchorWordInTail(markdownTail: string): string | null {
+  const re = /[A-Za-zÀ-ÿ]{4,}/g
+  const matches: string[] = []
+  let m: RegExpExecArray | null
+  while ((m = re.exec(markdownTail)) !== null) {
+    matches.push(m[0])
+  }
+  for (const w of matches) {
+    if (!MARKDOWN_TAIL_SKIP_WORDS.has(w.toLowerCase())) {
+      return w
+    }
+  }
+  return matches[0] ?? null
 }
-import { inject, nextTick, ref, watch } from 'vue'
 
 const props = defineProps<{
   /** When not using createDiffMarkdownEditor, pass reactive editor state here. */
   editorState?: EditorState
+  /**
+   * Page size (A4, A5, or `{ width, height }` CSS lengths) and content margins.
+   * Merged over `renderOptions.documentFormat` from createDiffMarkdownEditor when present.
+   */
+  format?: PartialDocumentFormatOptions
 }>()
 
 const emit = defineEmits<{
@@ -39,21 +84,36 @@ if (!controller && props.editorState === undefined) {
 }
 const editorState = controller ? controller.state : props.editorState!
 
+const injectedRenderOptions = inject(diffMarkdownRenderOptionsKey, null)
+const mergedDocumentFormat = computed(() =>
+  mergePartialDocumentFormat(
+    injectedRenderOptions?.documentFormat ?? defaultDocumentFormat(),
+    props.format,
+  ),
+)
+const documentPageStyle = computed(() => documentFormatToCssVars(mergedDocumentFormat.value))
+
 const diffPluginKey = new PluginKey('diff-plugin')
 
 function decorationRangeForDiff(doc: PMNode, diff: Diff, markdown: string): { from: number; to: number } | null {
+  const occ = diff.occurrenceIndex ?? 0
+
   if (diff.newText.length === 0) {
     const off = diff.insertMarkdownOffset
     if (off === undefined) return null
-    const word = firstSignificantWordInTail(markdown.slice(off))
+    const word = firstAnchorWordInTail(markdown.slice(off))
     if (!word) return null
-    const occ = diff.occurrenceIndex ?? 0
     const r = nthOccurrenceInSingleTextNode(doc, word, occ)
     if (!r) return null
     return { from: r.from, to: r.from }
   }
 
-  const occ = diff.occurrenceIndex ?? 0
+  const { plain, startPos } = buildPlainTextIndex(doc)
+  const crossNode = nthSubstringRangeInPlain(plain, startPos, diff.newText, occ)
+  if (crossNode) {
+    return crossNode
+  }
+
   return nthOccurrenceInSingleTextNode(doc, diff.newText, occ)
 }
 
@@ -146,7 +206,9 @@ watch(
 </script>
 
 <template>
-  <div class="dm-milkdown-host">
-    <Milkdown />
+  <div class="dm-editor-document" :style="documentPageStyle">
+    <div class="dm-milkdown-host">
+      <Milkdown />
+    </div>
   </div>
 </template>

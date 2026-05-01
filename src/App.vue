@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { createDiffMarkdownEditor } from './lib/createDiffMarkdownEditor'
-import type { Diff } from './lib/editor'
 
 const initialDraft = `# Welcome to the A4 Markdown Editor!
 
@@ -51,8 +50,6 @@ const { controller, Editor: DiffEditor } = createDiffMarkdownEditor({
   initialMarkdown: initialDraft,
 })
 
-const editorState = controller.state
-
 const originalText = ref('test the editor')
 const newText = ref('demonstrate the diff functionality')
 
@@ -63,13 +60,6 @@ function simulateExternalEdit() {
   })
 }
 
-function handleAcceptDiff(diff: Diff) {
-  controller.acceptDiff(diff)
-}
-
-function handleDiscardDiff(diff: Diff) {
-  controller.discardDiff(diff)
-}
 </script>
 
 <template>
@@ -89,17 +79,6 @@ function handleDiscardDiff(diff: Diff) {
         <input v-model="newText" type="text" />
       </div>
       <button @click="simulateExternalEdit">Simulate AI Replace</button>
-
-      <div v-if="editorState.activeDiffs.length > 0" class="diff-actions">
-        <h3>Active Diffs</h3>
-        <ul>
-          <li v-for="diff in editorState.activeDiffs" :key="diff.id">
-            <span class="diff-preview">"{{ diff.originalText }}" &rarr; "{{ diff.newText }}"</span>
-            <button @click="handleAcceptDiff(diff)">Accept</button>
-            <button @click="handleDiscardDiff(diff)">Discard</button>
-          </li>
-        </ul>
-      </div>
     </div>
   </div>
 </template>
@@ -142,19 +121,5 @@ function handleDiscardDiff(diff: Diff) {
 button {
   padding: 0.5rem 1rem;
   cursor: pointer;
-}
-.diff-actions {
-  margin-top: 1rem;
-  border-top: 1px solid #ccc;
-  padding-top: 1rem;
-}
-.diff-actions li {
-  margin-bottom: 0.5rem;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-.diff-preview {
-  flex: 1;
 }
 </style>

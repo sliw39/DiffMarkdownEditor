@@ -1,5 +1,11 @@
 import { test, expect } from '@playwright/test';
 
+async function acceptFirstDiffInEditor(page: import('@playwright/test').Page) {
+  const wrap = page.locator('.dm-milkdown-host .diff-change-wrap').first();
+  await wrap.hover();
+  await page.locator('.dm-milkdown-host').getByRole('button', { name: 'Accept' }).first().click();
+}
+
 test.describe('Diff functionality extended', () => {
   test('should replace all "Item" with "Element"', async ({ page }) => {
     await page.goto('/');
@@ -17,13 +23,11 @@ test.describe('Diff functionality extended', () => {
     const simulateButton = page.getByRole('button', { name: 'Simulate AI Replace' });
     await simulateButton.click();
 
-    const acceptButtons = page.getByRole('button', { name: 'Accept' });
-    // Need to wait until diff appears
-    await expect(acceptButtons.first()).toBeVisible();
+    await expect(page.locator('.dm-milkdown-host .diff-change-wrap').first()).toBeVisible();
 
-    const count = await acceptButtons.count();
-    for(let i=0; i<count; ++i) {
-        await page.getByRole('button', { name: 'Accept' }).first().click();
+    const count = await page.locator('.dm-milkdown-host .diff-change-wrap').count();
+    for (let i = 0; i < count; ++i) {
+      await acceptFirstDiffInEditor(page);
     }
 
     await expect(editor).toContainText('Element 1');
@@ -47,13 +51,11 @@ test.describe('Diff functionality extended', () => {
     const simulateButton = page.getByRole('button', { name: 'Simulate AI Replace' });
     await simulateButton.click();
 
-    const acceptButtons = page.getByRole('button', { name: 'Accept' });
+    await expect(page.locator('.dm-milkdown-host .diff-change-wrap').first()).toBeVisible();
 
-    await expect(acceptButtons.first()).toBeVisible();
-
-    const count = await acceptButtons.count();
-    for(let i=0; i<count; ++i) {
-        await page.getByRole('button', { name: 'Accept' }).first().click();
+    const count = await page.locator('.dm-milkdown-host .diff-change-wrap').count();
+    for (let i = 0; i < count; ++i) {
+      await acceptFirstDiffInEditor(page);
     }
 
     await expect(editor).not.toContainText("This is a blockquote. It's useful for calling out specific text.");

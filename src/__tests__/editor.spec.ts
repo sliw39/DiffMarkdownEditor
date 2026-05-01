@@ -98,10 +98,18 @@ describe('EditorState logic', () => {
 
       expect(state.currentDraft).toBe('This is a tested document.')
       expect(state.activeDiffs).toHaveLength(1)
-      // dmp.patch_make chunks the diff automatically based on context, so the extracted
-      // text may contain surrounding context characters, e.g. "s a test documen" instead of "test document".
-      expect(state.activeDiffs[0].originalText).toContain('test documen')
-      expect(state.activeDiffs[0].newText).toContain('tested documen')
+      expect(state.activeDiffs[0].originalText).toBe('test document')
+      expect(state.activeDiffs[0].newText).toBe('tested document')
+    })
+
+    it('adds one active diff per occurrence for exact multi-replace', () => {
+      const state = createEditorState('foo Item bar Item baz')
+      externalUpdateFragment(state, { originalText: 'Item', newText: 'Element' })
+      expect(state.currentDraft).toBe('foo Element bar Element baz')
+      expect(state.activeDiffs).toHaveLength(2)
+      expect(state.activeDiffs.every((d) => d.originalText === 'Item' && d.newText === 'Element')).toBe(
+        true,
+      )
     })
 
     it('does nothing if fragment is not found', () => {

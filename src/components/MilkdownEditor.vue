@@ -8,11 +8,13 @@ import { nord } from '@milkdown/theme-nord'
 import { history } from '@milkdown/plugin-history'
 import { listener, listenerCtx } from '@milkdown/plugin-listener'
 import { Decoration, DecorationSet } from 'prosemirror-view'
+import type { Node as PMNode } from 'prosemirror-model'
 import { Plugin, PluginKey } from 'prosemirror-state'
 import { $prose } from '@milkdown/utils'
-import type { EditorState } from '../lib/editor'
+import type { Diff, EditorState } from '../lib/editor'
+import { createDiffDecorations } from '../lib/diffChangeWidget'
 import { diffMarkdownControllerKey } from '../lib/injectionKeys'
-import { inject, ref, watch } from 'vue'
+import { inject, nextTick, ref, watch } from 'vue'
 
 const props = defineProps<{
   /** When not using createDiffMarkdownEditor, pass reactive editor state here. */
@@ -32,6 +34,44 @@ if (!controller && props.editorState === undefined) {
 const editorState = controller ? controller.state : props.editorState!
 
 const diffPluginKey = new PluginKey('diff-plugin')
+
+/** Map a character offset in serialized markdown to a ProseMirror document position. */
+function posFromMarkdownOffset(doc: PMNode, offset: number): number {
+  let acc = 0
+  let found = -1
+  doc.descendants((node, pos) => {
+    if (!node.isText || !node.text) return
+    const len = node.text.length
+    if (acc + len > offset) {
+      found = pos + (offset - acc)
+      return false
+    }
+    acc += len
+  })
+  return found
+}
+
+function decorationRangeForDiff(doc: PMNode, diff: Diff): { from: number; to: number } | null {
+  if (diff.appliedNewTextStart !== undefined) {
+    const from = posFromMarkdownOffset(doc, diff.appliedNewTextStart)
+    if (from === -1) return null
+    const to = posFromMarkdownOffset(doc, diff.appliedNewTextStart + diff.newText.length)
+    if (to === -1) return null
+    return { from, to }
+  }
+
+  let result: { from: number; to: number } | null = null
+  doc.descendants((node, p) => {
+    if (node.isText && node.text) {
+      const idx = node.text.indexOf(diff.newText)
+      if (idx !== -1) {
+        result = { from: p + idx, to: p + idx + diff.newText.length }
+        return false
+      }
+    }
+  })
+  return result
+}
 
 const diffPlugin = $prose(() => {
   return new Plugin({
@@ -95,34 +135,26 @@ watch(
 watch(
   () => editorState.activeDiffs,
   (newDiffs) => {
-    const editor = get()
-    if (!editor) return
+    void nextTick(() => {
+      const editor = get()
+      if (!editor) return
 
-    editor.action((ctx) => {
-      const view = ctx.get(editorViewCtx)
-      const doc = view.state.doc
-      const decorations: Decoration[] = []
+      editor.action((ctx) => {
+        const view = ctx.get(editorViewCtx)
+        const doc = view.state.doc
+        const decorations: Decoration[] = []
 
-      newDiffs.forEach((diff) => {
-        doc.descendants((node, p) => {
-          if (node.isText && node.text) {
-            const idx = node.text.indexOf(diff.newText)
-            if (idx !== -1) {
-              decorations.push(
-                Decoration.inline(p + Math.max(0, idx), p + idx + diff.newText.length, {
-                  class: 'diff-added',
-                  style: 'background-color: #e6ffed; border-bottom: 2px solid #28a745;',
-                  'data-diff-id': diff.id,
-                }),
-              )
-            }
+        newDiffs.forEach((diff) => {
+          const range = decorationRangeForDiff(doc, diff)
+          if (range) {
+            decorations.push(...createDiffDecorations(range.from, range.to, diff, controller))
           }
         })
-      })
 
-      const decSet = DecorationSet.create(doc, decorations)
-      const tr = view.state.tr.setMeta(diffPluginKey, { type: 'update', decorations: decSet })
-      view.dispatch(tr)
+        const decSet = DecorationSet.create(doc, decorations)
+        const tr = view.state.tr.setMeta(diffPluginKey, { type: 'update', decorations: decSet })
+        view.dispatch(tr)
+      })
     })
   },
   { deep: true },

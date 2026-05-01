@@ -1,0 +1,44 @@
+/* Library bundle: A4 frame + document + Milkdown/diff (no global #app rules) */
+
+.dm-editor-frame {
+  box-sizing: border-box;
+  background: var(--dm-frame-bg);
+  color: var(--dm-frame-color);
+  font-family: var(--dm-frame-font-family);
+  font-size: var(--dm-frame-font-size);
+}
+
+.dm-editor-document {
+  width: 210mm;
+  min-height: 297mm;
+  padding: 2cm;
+  background-color: var(--dm-doc-bg);
+  color: var(--dm-doc-color);
+  font-family: var(--dm-doc-font-family);
+  font-size: var(--dm-doc-font-size);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: 1px solid #ddd;
+  box-sizing: border-box;
+}
+
+.dm-milkdown-host {
+  border: none;
+  padding: 0;
+  background-color: transparent;
+  text-align: left;
+  height: 100%;
+  color: var(--dm-doc-color);
+  font-family: var(--dm-doc-font-family);
+  font-size: var(--dm-doc-font-size);
+}
+
+.dm-milkdown-host .milkdown {
+  color: var(--dm-doc-color);
+  font-family: var(--dm-doc-font-family);
+  font-size: var(--dm-doc-font-size);
+}
+
+.dm-milkdown-host .diff-added {
+  background-color: #e6ffed;
+  border-bottom: 2px solid #28a745;
+}

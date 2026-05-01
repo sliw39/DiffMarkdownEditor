@@ -30,7 +30,7 @@ test.describe('Diff functionality', () => {
     await expect(diffPreview).not.toBeVisible();
 
     // Verify the text is updated in the editor
-    const editor = page.locator('.milkdown-container');
+    const editor = page.locator('.dm-milkdown-host');
     await expect(editor).toContainText('demonstrate the diff functionality');
     await expect(editor).not.toContainText('test document');
   });
@@ -59,7 +59,7 @@ test.describe('Diff functionality', () => {
     await expect(diffPreview).not.toBeVisible();
 
     // Verify the text is NOT updated in the editor
-    const editor = page.locator('.milkdown-container');
+    const editor = page.locator('.dm-milkdown-host');
     await expect(editor).not.toContainText('demonstrate the diff functionality');
     await expect(editor).toContainText('test document');
   });

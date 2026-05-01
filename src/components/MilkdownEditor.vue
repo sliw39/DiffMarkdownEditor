@@ -11,15 +11,25 @@ import { Decoration, DecorationSet } from 'prosemirror-view'
 import { Plugin, PluginKey } from 'prosemirror-state'
 import { $prose } from '@milkdown/utils'
 import type { EditorState } from '../lib/editor'
-import { watch, ref } from 'vue'
+import { diffMarkdownControllerKey } from '../lib/injectionKeys'
+import { inject, ref, watch } from 'vue'
 
 const props = defineProps<{
-  editorState: EditorState
+  /** When not using createDiffMarkdownEditor, pass reactive editor state here. */
+  editorState?: EditorState
 }>()
 
 const emit = defineEmits<{
   (e: 'update', content: string): void
 }>()
+
+const controller = inject(diffMarkdownControllerKey, null)
+if (!controller && props.editorState === undefined) {
+  throw new Error(
+    'MilkdownEditor requires editorState prop or a parent from createDiffMarkdownEditor().',
+  )
+}
+const editorState = controller ? controller.state : props.editorState!
 
 const diffPluginKey = new PluginKey('diff-plugin')
 
@@ -46,13 +56,13 @@ const diffPlugin = $prose(() => {
   })
 })
 
-const lastEmitted = ref(props.editorState.currentDraft)
+const lastEmitted = ref(editorState.currentDraft)
 
 const { get } = useEditor((root) => {
   return Editor.make()
     .config((ctx) => {
       ctx.set(rootCtx, root)
-      ctx.set(defaultValueCtx, props.editorState.currentDraft)
+      ctx.set(defaultValueCtx, editorState.currentDraft)
       ctx.get(listenerCtx).markdownUpdated((_, markdown) => {
         lastEmitted.value = markdown
         emit('update', markdown)
@@ -66,68 +76,61 @@ const { get } = useEditor((root) => {
     .use(diffPlugin)
 })
 
-watch(() => props.editorState.currentDraft, (newDraft) => {
-  if (newDraft === lastEmitted.value) return
+watch(
+  () => editorState.currentDraft,
+  (newDraft) => {
+    if (newDraft === lastEmitted.value) return
 
-  const editor = get()
-  if (!editor) return
+    const editor = get()
+    if (!editor) return
 
-  editor.action((ctx) => {
-    replaceAll(newDraft)(ctx)
-    lastEmitted.value = newDraft
-  })
-}, { deep: false })
-
-watch(() => props.editorState.activeDiffs, (newDiffs) => {
-  const editor = get()
-  if (!editor) return
-
-  editor.action((ctx) => {
-    const view = ctx.get(editorViewCtx)
-    const doc = view.state.doc
-    const decorations: Decoration[] = []
-
-    newDiffs.forEach((diff) => {
-      doc.descendants((node, p) => {
-        if (node.isText && node.text) {
-          const idx = node.text.indexOf(diff.newText)
-          if (idx !== -1) {
-            decorations.push(
-              Decoration.inline(p + Math.max(0, idx), p + idx + diff.newText.length, {
-                class: 'diff-added',
-                style: 'background-color: #e6ffed; border-bottom: 2px solid #28a745;',
-                'data-diff-id': diff.id
-              })
-            )
-          }
-        }
-      })
+    editor.action((ctx) => {
+      replaceAll(newDraft)(ctx)
+      lastEmitted.value = newDraft
     })
+  },
+  { deep: false },
+)
 
-    const decSet = DecorationSet.create(doc, decorations)
-    const tr = view.state.tr.setMeta(diffPluginKey, { type: 'update', decorations: decSet })
-    view.dispatch(tr)
-  })
-}, { deep: true })
+watch(
+  () => editorState.activeDiffs,
+  (newDiffs) => {
+    const editor = get()
+    if (!editor) return
 
+    editor.action((ctx) => {
+      const view = ctx.get(editorViewCtx)
+      const doc = view.state.doc
+      const decorations: Decoration[] = []
+
+      newDiffs.forEach((diff) => {
+        doc.descendants((node, p) => {
+          if (node.isText && node.text) {
+            const idx = node.text.indexOf(diff.newText)
+            if (idx !== -1) {
+              decorations.push(
+                Decoration.inline(p + Math.max(0, idx), p + idx + diff.newText.length, {
+                  class: 'diff-added',
+                  style: 'background-color: #e6ffed; border-bottom: 2px solid #28a745;',
+                  'data-diff-id': diff.id,
+                }),
+              )
+            }
+          }
+        })
+      })
+
+      const decSet = DecorationSet.create(doc, decorations)
+      const tr = view.state.tr.setMeta(diffPluginKey, { type: 'update', decorations: decSet })
+      view.dispatch(tr)
+    })
+  },
+  { deep: true },
+)
 </script>
 
 <template>
-  <div class="milkdown-container">
+  <div class="dm-milkdown-host">
     <Milkdown />
   </div>
 </template>
-
-<style scoped>
-.milkdown-container {
-  border: none;
-  padding: 0;
-  background-color: transparent;
-  text-align: left;
-  height: 100%;
-}
-:deep(.diff-added) {
-  background-color: #e6ffed;
-  border-bottom: 2px solid #28a745;
-}
-</style>

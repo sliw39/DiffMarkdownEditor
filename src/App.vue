@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
-import { MilkdownProvider } from '@milkdown/vue'
-import MilkdownEditor from './components/MilkdownEditor.vue'
-import { createEditorState, externalUpdateFragment, acceptDiff, discardDiff } from './lib/editor'
+import { ref } from 'vue'
+import { createDiffMarkdownEditor } from './lib/createDiffMarkdownEditor'
+import type { Diff } from './lib/editor'
 
 const initialDraft = `# Welcome to the A4 Markdown Editor!
 
@@ -47,38 +46,36 @@ greet("World");
 | Left aligned | Center aligned | Right aligned |
 | Row 2, Col 1 | Row 2, Col 2 | Row 2, Col 3 |
 `
-const editorState = reactive(createEditorState(initialDraft))
+
+const { controller, Editor: DiffEditor } = createDiffMarkdownEditor({
+  initialMarkdown: initialDraft,
+})
+
+const editorState = controller.state
 
 const originalText = ref('test the editor')
 const newText = ref('demonstrate the diff functionality')
 
-function onEditorUpdate(content: string) {
-  editorState.currentDraft = content
-}
-
 function simulateExternalEdit() {
-  externalUpdateFragment(editorState, {
+  controller.externalUpdateFragment({
     originalText: originalText.value,
-    newText: newText.value
+    newText: newText.value,
   })
 }
 
-function handleAcceptDiff(diff: any) {
-  acceptDiff(editorState, diff)
+function handleAcceptDiff(diff: Diff) {
+  controller.acceptDiff(diff)
 }
 
-function handleDiscardDiff(diff: any) {
-  discardDiff(editorState, diff)
+function handleDiscardDiff(diff: Diff) {
+  controller.discardDiff(diff)
 }
-
 </script>
 
 <template>
   <div class="app-container">
     <div class="editor-section">
-      <MilkdownProvider>
-        <MilkdownEditor :editorState="editorState" @update="onEditorUpdate" />
-      </MilkdownProvider>
+      <DiffEditor />
     </div>
 
     <div class="assistant-section">
@@ -119,13 +116,6 @@ function handleDiscardDiff(diff: any) {
   color: #333;
 }
 .editor-section {
-  width: 210mm;
-  min-height: 297mm;
-  padding: 2cm;
-  background-color: white;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  border: 1px solid #ddd;
-  box-sizing: border-box;
   display: block;
 }
 .assistant-section {

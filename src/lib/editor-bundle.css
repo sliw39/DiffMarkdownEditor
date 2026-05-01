@@ -38,7 +38,131 @@
   font-size: var(--dm-doc-font-size);
 }
 
+.dm-milkdown-host .diff-suppressed-range {
+  font-size: 0 !important;
+  line-height: 0 !important;
+  opacity: 0 !important;
+  display: inline-block !important;
+  width: 0 !important;
+  max-width: 0 !important;
+  overflow: hidden !important;
+  vertical-align: baseline;
+  pointer-events: none;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.dm-milkdown-host .diff-change-wrap {
+  position: relative;
+  display: inline;
+  vertical-align: baseline;
+}
+
+.dm-milkdown-host .diff-change-inline {
+  display: inline;
+  white-space: break-spaces;
+}
+
+.dm-milkdown-host .diff-removed {
+  background-color: #ffeef0;
+  border-bottom: 2px solid #cb2431;
+  color: inherit;
+}
+
 .dm-milkdown-host .diff-added {
   background-color: #e6ffed;
   border-bottom: 2px solid #28a745;
+  color: inherit;
+}
+
+.dm-milkdown-host .diff-tooltip {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  left: 50%;
+  bottom: 100%;
+  transform: translateX(-50%) translateY(-6px);
+  min-width: 12rem;
+  max-width: min(22rem, 90vw);
+  padding: 0.5rem 0.65rem;
+  margin-bottom: 4px;
+  z-index: 50;
+  box-sizing: border-box;
+  font-family: system-ui, sans-serif;
+  font-size: 0.8rem;
+  line-height: 1.35;
+  color: #1a1a1a;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+  transition:
+    opacity 0.12s ease,
+    visibility 0.12s ease;
+}
+
+.dm-milkdown-host .diff-change-wrap:hover .diff-tooltip,
+.dm-milkdown-host .diff-change-wrap:focus-within .diff-tooltip {
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.dm-milkdown-host .diff-tooltip-row {
+  margin-bottom: 0.35rem;
+  word-break: break-word;
+}
+
+.dm-milkdown-host .diff-tooltip-row:last-of-type {
+  margin-bottom: 0.5rem;
+}
+
+.dm-milkdown-host .diff-tooltip-label {
+  font-weight: 600;
+  color: #475569;
+}
+
+.dm-milkdown-host .diff-tooltip-value {
+  color: #0f172a;
+}
+
+.dm-milkdown-host .diff-tooltip-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding-top: 0.35rem;
+  margin-top: 0.25rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.dm-milkdown-host .diff-tooltip-actions button {
+  flex: 1 1 auto;
+  min-width: 4.5rem;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 4px;
+  border: 1px solid transparent;
+}
+
+.dm-milkdown-host .diff-tooltip-accept {
+  background: #22863a;
+  color: #fff;
+  border-color: #1a6b2e;
+}
+
+.dm-milkdown-host .diff-tooltip-accept:hover {
+  background: #1f7a34;
+}
+
+.dm-milkdown-host .diff-tooltip-discard {
+  background: #fff;
+  color: #b31d28;
+  border-color: #cb2431;
+}
+
+.dm-milkdown-host .diff-tooltip-discard:hover {
+  background: #fff5f5;
 }

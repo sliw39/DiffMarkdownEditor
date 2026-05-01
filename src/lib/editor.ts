@@ -9,6 +9,11 @@ export interface FuzzyDiff {
 
 export interface Diff extends FuzzyDiff {
   id: string
+  /**
+   * Character offset in `currentDraft` where this change’s `newText` begins
+   * (after the fragment was applied). Set for exact multi-replace and empty `newText`.
+   */
+  appliedNewTextStart?: number
 }
 
 export interface EditorState {
@@ -108,8 +113,30 @@ export function externalUpdateFragment(state: EditorState, fragment: FuzzyDiff) 
 
   // Try exact replacement first to handle multiple occurrences and long paragraphs
   // bypassing diff-match-patch's 32 character limit for Match_main
-  if (targetDraft.includes(fragment.originalText)) {
-    targetDraft = targetDraft.split(fragment.originalText).join(fragment.newText)
+  if (fragment.originalText.length > 0 && state.currentDraft.includes(fragment.originalText)) {
+    const appliedStarts: number[] = []
+    let built = ''
+    let pos = 0
+    while (true) {
+      const idx = state.currentDraft.indexOf(fragment.originalText, pos)
+      if (idx === -1) {
+        built += state.currentDraft.slice(pos)
+        break
+      }
+      built += state.currentDraft.slice(pos, idx) + fragment.newText
+      appliedStarts.push(built.length - fragment.newText.length)
+      pos = idx + fragment.originalText.length
+    }
+    targetDraft = built
+
+    for (const start of appliedStarts) {
+      state.activeDiffs.push({
+        id: Math.random().toString(36).substring(2, 9),
+        originalText: fragment.originalText,
+        newText: fragment.newText,
+        appliedNewTextStart: start,
+      })
+    }
   } else {
     // Fallback to fuzzy match logic using patch_apply
     const patches = dmp.patch_make(fragment.originalText, fragment.newText)
@@ -122,24 +149,28 @@ export function externalUpdateFragment(state: EditorState, fragment: FuzzyDiff) 
   }
 
   if (targetDraft !== state.currentDraft) {
-    const patches = dmp.patch_make(state.currentDraft, targetDraft)
-    for (const patch of patches) {
-      const p = patch as unknown as { diffs: DMPDiff[] }
-      const originalText = p.diffs
-        .filter((d: DMPDiff) => d[0] !== 1)
-        .map((d: DMPDiff) => d[1])
-        .join('')
-      const newText = p.diffs
-        .filter((d: DMPDiff) => d[0] !== -1)
-        .map((d: DMPDiff) => d[1])
-        .join('')
+    const alreadyPushedExact = fragment.originalText.length > 0 && state.currentDraft.includes(fragment.originalText)
 
-      if (originalText !== newText) {
-        state.activeDiffs.push({
-          id: Math.random().toString(36).substring(2, 9),
-          originalText,
-          newText,
-        })
+    if (!alreadyPushedExact) {
+      const patches = dmp.patch_make(state.currentDraft, targetDraft)
+      for (const patch of patches) {
+        const p = patch as unknown as { diffs: DMPDiff[] }
+        const originalText = p.diffs
+          .filter((d: DMPDiff) => d[0] !== 1)
+          .map((d: DMPDiff) => d[1])
+          .join('')
+        const newText = p.diffs
+          .filter((d: DMPDiff) => d[0] !== -1)
+          .map((d: DMPDiff) => d[1])
+          .join('')
+
+        if (originalText !== newText) {
+          state.activeDiffs.push({
+            id: Math.random().toString(36).substring(2, 9),
+            originalText,
+            newText,
+          })
+        }
       }
     }
     state.currentDraft = targetDraft

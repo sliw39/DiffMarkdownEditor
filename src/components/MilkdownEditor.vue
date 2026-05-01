@@ -13,13 +13,13 @@ import { Plugin, PluginKey } from 'prosemirror-state'
 import { $prose } from '@milkdown/utils'
 import type { Diff, EditorState } from '../lib/editor'
 import { createDiffDecorations } from '../lib/diffChangeWidget'
-import { buildPlainTextIndex, nthSubstringRangeInPlain } from '../lib/prosePlainText'
+import { nthOccurrenceInSingleTextNode } from '../lib/prosePlainText'
+import { diffMarkdownControllerKey } from '../lib/injectionKeys'
 
 function firstSignificantWordInTail(markdownTail: string): string | null {
   const m = markdownTail.match(/[A-Za-zÀ-ÿ]{4,}/)
   return m ? m[0] : null
 }
-import { diffMarkdownControllerKey } from '../lib/injectionKeys'
 import { inject, nextTick, ref, watch } from 'vue'
 
 const props = defineProps<{
@@ -42,21 +42,19 @@ const editorState = controller ? controller.state : props.editorState!
 const diffPluginKey = new PluginKey('diff-plugin')
 
 function decorationRangeForDiff(doc: PMNode, diff: Diff, markdown: string): { from: number; to: number } | null {
-  const { plain, startPos } = buildPlainTextIndex(doc)
-
   if (diff.newText.length === 0) {
     const off = diff.insertMarkdownOffset
     if (off === undefined) return null
     const word = firstSignificantWordInTail(markdown.slice(off))
     if (!word) return null
     const occ = diff.occurrenceIndex ?? 0
-    const r = nthSubstringRangeInPlain(plain, startPos, word, occ)
+    const r = nthOccurrenceInSingleTextNode(doc, word, occ)
     if (!r) return null
     return { from: r.from, to: r.from }
   }
 
   const occ = diff.occurrenceIndex ?? 0
-  return nthSubstringRangeInPlain(plain, startPos, diff.newText, occ)
+  return nthOccurrenceInSingleTextNode(doc, diff.newText, occ)
 }
 
 const diffPlugin = $prose(() => {

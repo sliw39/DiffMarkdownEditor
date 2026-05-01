@@ -62,4 +62,21 @@ test.describe('Diff functionality', () => {
     await expect(editor).not.toContainText('demonstrate the diff functionality');
     await expect(editor).toContainText('test document');
   });
+
+  test('should place diff inside code block, not in table', async ({ page }) => {
+    await page.goto('/');
+
+    const originalTextInput = page.locator('div.form-group').filter({ hasText: 'Original Text' }).locator('input');
+    await originalTextInput.fill('console.log');
+
+    const newTextInput = page.locator('div.form-group').filter({ hasText: 'New Text' }).locator('input');
+    await newTextInput.fill('demonstrate the diff functionality');
+
+    await page.getByRole('button', { name: 'Simulate AI Replace' }).click();
+
+    await expect(page.locator('.dm-milkdown-host .diff-change-wrap')).toHaveCount(1);
+    await expect(page.locator('.dm-milkdown-host pre')).toContainText('demonstrate the diff functionality');
+    await expect(page.locator('.dm-milkdown-host pre')).toContainText('console.log');
+    await expect(page.locator('.dm-milkdown-host').getByText('Row 2, Col 3', { exact: true })).toBeVisible();
+  });
 });

@@ -1,6 +1,10 @@
 import { describe, it, expect } from 'vitest'
 import { Schema } from 'prosemirror-model'
-import { buildPlainTextIndex, nthSubstringRangeInPlain } from '../lib/prosePlainText'
+import {
+  buildPlainTextIndex,
+  nthSubstringRangeInPlain,
+  nthOccurrenceInSingleTextNode,
+} from '../lib/prosePlainText'
 
 const schema = new Schema({
   nodes: {
@@ -34,5 +38,11 @@ describe('prosePlainText', () => {
     const { plain, startPos } = buildPlainTextIndex(doc)
     expect(nthSubstringRangeInPlain(plain, startPos, 'x', 0)).toEqual({ from: 3, to: 4 })
     expect(nthSubstringRangeInPlain(plain, startPos, 'x', 1)).toEqual({ from: 7, to: 8 })
+  })
+
+  it('nthOccurrenceInSingleTextNode does not match across paragraph boundaries', () => {
+    const doc = docFromPlain(['aa', 'bb'])
+    expect(nthOccurrenceInSingleTextNode(doc, 'ab', 0)).toBeNull()
+    expect(nthOccurrenceInSingleTextNode(doc, 'aa', 0)).toEqual({ from: 1, to: 3 })
   })
 })

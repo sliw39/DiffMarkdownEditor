@@ -50,3 +50,36 @@ export function nthSubstringRangeInPlain(
   }
   return null
 }
+
+/**
+ * Nth occurrence of `needle` entirely inside a single ProseMirror text node.
+ * Avoids false matches where a flat concatenation of text nodes spells `needle`
+ * but the document has a split in the middle (e.g. table cell vs code block).
+ */
+export function nthOccurrenceInSingleTextNode(
+  doc: PMNode,
+  needle: string,
+  occurrenceIndex: number,
+): { from: number; to: number } | null {
+  if (needle.length === 0) {
+    return null
+  }
+
+  let occ = 0
+  let found: { from: number; to: number } | null = null
+  doc.descendants((node, pos) => {
+    if (!node.isText || !node.text) return
+    let searchFrom = 0
+    while (searchFrom <= node.text.length - needle.length) {
+      const idx = node.text.indexOf(needle, searchFrom)
+      if (idx === -1) break
+      if (occ === occurrenceIndex) {
+        found = { from: pos + idx, to: pos + idx + needle.length }
+        return false
+      }
+      occ++
+      searchFrom = idx + 1
+    }
+  })
+  return found
+}

@@ -7,7 +7,8 @@
     ".": {
       "import": "./dist/diff-markdown-editor.js",
       "default": "./dist/diff-markdown-editor.js"
-    }
+    },
+    "./diff-markdown-editor.css": "./dist/diff-markdown-editor.css"
   },
   "scripts": {
     "dev": "vite",

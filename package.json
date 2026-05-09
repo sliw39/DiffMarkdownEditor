@@ -31,12 +31,18 @@
     "vue": "^3.5.32"
   },
   "dependencies": {
+    "@codemirror/language": "^6.11.3",
+    "@codemirror/state": "^6.5.2",
+    "@codemirror/view": "^6.38.6",
     "@milkdown/core": "^7.20.0",
     "@milkdown/preset-commonmark": "^7.20.0",
     "@milkdown/preset-gfm": "^7.20.0",
     "@milkdown/theme-nord": "^7.20.0",
     "@milkdown/vue": "^7.20.0",
     "diff-match-patch": "^1.0.5",
+    "prosemirror-model": "^1.25.4",
+    "prosemirror-state": "^1.4.4",
+    "prosemirror-view": "^1.41.7",
     "vue": "^3.5.32"
   },
   "devDependencies": {

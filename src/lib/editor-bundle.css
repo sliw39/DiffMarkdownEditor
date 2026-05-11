@@ -18,8 +18,67 @@
   font-family: var(--dm-doc-font-family);
   font-size: var(--dm-doc-font-size);
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  border: 1px solid #ddd;
+  border: 1px solid var(--dm-frame-bg);
   box-sizing: border-box;
+}
+
+/* reset */
+.dm-editor-document * {
+    margin: 0;
+    padding: 0;
+    line-height: 1;
+}
+
+
+.dm-editor-document h1 {
+  margin: 1em 0 1em;
+  font-size: 1.5em;
+  color: var(--dm-color-primary, var(--dm-doc-color));
+  text-transform: uppercase;
+  font-weight: bolder;
+  letter-spacing: .1em;
+  font-family: monospace;
+}
+
+.dm-editor-document h2 {
+  margin: 1em 0 1em;
+  font-size: 1.2em;
+  color: var(--dm-color-secondary, var(--dm-doc-color));
+  text-transform: uppercase;
+  font-weight: bolder;
+  letter-spacing: -.1em;
+  font-family: monospace;
+}
+
+.dm-editor-document h3 {
+    font-size: 1.2em;
+    margin: 0 0 1em 0;
+    font-family: monospace;
+}
+
+.dm-editor-document h4 {
+    font-size: 1.2em;
+    margin: 0 0 1em 0;
+    font-family: monospace;
+    font-style: italic;
+}
+
+.dm-editor-document p {
+    text-align: justify;
+    margin: 0 0 .8em 0;
+    line-height: 1em;
+}
+
+.dm-editor-document hr {
+    margin: 2em 10em;
+}
+
+.dm-editor-document ul {
+    margin: .8em 2em;
+}
+
+.dm-editor-document b,strong {
+   color: var(--dm-color-primary, var(--dm-doc-color))
 }
 
 .dm-milkdown-host {
@@ -67,13 +126,13 @@
 .dm-milkdown-host .diff-removed {
   background-color: #ffeef0;
   border-bottom: 2px solid #cb2431;
-  color: inherit;
+  color: black;
 }
 
 .dm-milkdown-host .diff-added {
   background-color: #e6ffed;
   border-bottom: 2px solid #28a745;
-  color: inherit;
+  color: black;
 }
 
 .dm-milkdown-host .diff-tooltip {

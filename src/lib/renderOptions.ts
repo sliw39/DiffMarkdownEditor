@@ -41,6 +41,9 @@ export interface DiffMarkdownRenderOptions {
   /** Inner document / editor surface */
   documentBgColor: string
   documentTextFont: TextFontOptions
+  /** Accent colors consumed by editor bundle CSS. */
+  colorPrimary: string
+  colorSecondary: string
   /** Printable area: page dimensions and inner margins */
   documentFormat: DocumentFormatOptions
 }
@@ -67,6 +70,8 @@ export function defaultRenderOptions(): DiffMarkdownRenderOptions {
       fontFamily: 'sans-serif',
       baseSize: '16px',
     },
+    colorPrimary: '#333333',
+    colorSecondary: '#666666',
     documentFormat: defaultDocumentFormat(),
   }
 }
@@ -119,6 +124,8 @@ export function mergeRenderOptions(partial?: PartialRenderOptions): DiffMarkdown
     documentBgColor: partial.documentBgColor ?? d.documentBgColor,
     frameTextFont: { ...d.frameTextFont, ...partial.frameTextFont },
     documentTextFont: { ...d.documentTextFont, ...partial.documentTextFont },
+    colorPrimary: partial.colorPrimary ?? d.colorPrimary,
+    colorSecondary: partial.colorSecondary ?? d.colorSecondary,
     documentFormat: mergePartialDocumentFormat(d.documentFormat, partial.documentFormat),
   }
 }
@@ -133,6 +140,8 @@ export function renderOptionsToCssVars(opts: DiffMarkdownRenderOptions): Record<
     '--dm-doc-color': opts.documentTextFont.color,
     '--dm-doc-font-family': opts.documentTextFont.fontFamily,
     '--dm-doc-font-size': opts.documentTextFont.baseSize,
+    '--dm-color-primary': opts.colorPrimary,
+    '--dm-color-secondary': opts.colorSecondary,
     ...documentFormatToCssVars(opts.documentFormat),
   }
 }

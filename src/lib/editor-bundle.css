@@ -29,6 +29,9 @@
     line-height: 1;
 }
 
+.dm-editor-document b,strong {
+  color: var(--dm-color-primary, var(--dm-doc-color))
+}
 
 .dm-editor-document h1 {
   margin: 1em 0 1em;
@@ -75,10 +78,6 @@
 
 .dm-editor-document ul {
     margin: .8em 2em;
-}
-
-.dm-editor-document b,strong {
-   color: var(--dm-color-primary, var(--dm-doc-color))
 }
 
 .dm-milkdown-host {
